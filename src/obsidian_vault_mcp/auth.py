@@ -7,9 +7,12 @@ from starlette.responses import JSONResponse
 from .config import VAULT_MCP_TOKEN
 
 # Paths that don't require bearer auth (OAuth flow + health)
+_WWW_AUTH_HEADER = "Bearer"
+
 _AUTH_EXEMPT_PATHS = {
     "/health",
     "/.well-known/oauth-authorization-server",
+    "/.well-known/oauth-protected-resource",
     "/oauth/authorize",
     "/oauth/token",
     "/oauth/register",
@@ -34,6 +37,7 @@ class BearerAuthMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 {"error": "Missing or malformed Authorization header"},
                 status_code=401,
+                headers={"WWW-Authenticate": _WWW_AUTH_HEADER},
             )
 
         token = auth_header[7:]
@@ -41,6 +45,7 @@ class BearerAuthMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 {"error": "Invalid token"},
                 status_code=401,
+                headers={"WWW-Authenticate": _WWW_AUTH_HEADER},
             )
 
         return await call_next(request)

@@ -206,9 +206,20 @@ async def oauth_register(request: Request) -> JSONResponse:
     }, status_code=201)
 
 
+async def oauth_protected_resource(request: Request) -> JSONResponse:
+    """RFC 9728 OAuth protected resource metadata."""
+    base_url = str(request.base_url).rstrip("/")
+    return JSONResponse({
+        "resource": base_url,
+        "authorization_servers": [base_url],
+        "bearer_methods_supported": ["header"],
+    })
+
+
 # Starlette routes to mount on the app
 oauth_routes = [
     Route("/.well-known/oauth-authorization-server", oauth_metadata, methods=["GET"]),
+    Route("/.well-known/oauth-protected-resource", oauth_protected_resource, methods=["GET"]),
     Route("/oauth/authorize", oauth_authorize, methods=["GET"]),
     Route("/oauth/token", oauth_token, methods=["POST"]),
     Route("/oauth/register", oauth_register, methods=["POST"]),
